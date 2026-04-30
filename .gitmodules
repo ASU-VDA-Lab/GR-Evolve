@@ -1,6 +1,6 @@
 [submodule "OpenROAD_New_GRT"]
 	path = OpenROAD_New_GRT
-	url = git@github.com:taizun-jj202/OpenROAD_New_GRT.git
+	url = https://github.com/taizun-jj202/OpenROAD_New_GRT.git
 [submodule "OpenROAD-flow-scripts"]
 	path = OpenROAD-flow-scripts
-	url = git@github.com:taizun-jj202/OpenROAD-flow-scripts.git
+	url = https://github.com/taizun-jj202/OpenROAD-flow-scripts_New_GRT.git
