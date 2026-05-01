@@ -74,7 +74,7 @@ Copies the correct `AGENTS.md` file from the [`AGENTS/`](AGENTS/) directory into
 **Step 4 — Start evolution** (`[START EVOLUTION]`)
 Launches `GeneticRunCodex.sh` in the background via `nohup`. Evolution runs are logged to `/root/evolution_start_time.log` inside each container. From this point the containers run autonomously.
 
-
+<!--
 ## Acknowledgements
 
 This work was conducted at the [ASU VDA Lab](https://github.com/ASU-VDA-Lab). We thank the maintainers of the open-source EDA tools and benchmark suites that made this research possible.
@@ -92,3 +92,5 @@ If you use GR-Evolve in your research, please cite our paper:
   year={2026}
 }
 ```
+
+-->
