@@ -16,9 +16,6 @@
 
 This repository contains the official implementation of the paper:
 
-> **GR-Evolve: Design-Adaptive Global Routing via LLM-Driven Algorithm Evolution**
-> Taizun Jafri, Vidya A. Chhabria — *arXiv:2604.22234*, 2026.
-
 For a full description of the methodology, motivation, and experimental results, please refer to the paper.
 
 
