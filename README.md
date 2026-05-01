@@ -1,6 +1,6 @@
 # GR-Evolve: Design-Adaptive Global Routing via LLM-Driven Algorithm Evolution
 
-<p align="center">
+<!-- <p align="center">
   <a href="https://arxiv.org/abs/2604.22234"><img src="https://img.shields.io/badge/arXiv-2604.22234-b31b1b.svg" alt="arXiv"></a>
 </p>
 
@@ -8,7 +8,7 @@
   <i>Design-Adaptive Global Routing via LLM-Driven Algorithm Evolution</i>
 </p>
 
----
+--- -->
 
 ## Overview
 
