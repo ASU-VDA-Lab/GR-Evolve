@@ -1,49 +1,4 @@
 
- bu_copy_test() {
-  # docker exec $c bash -c "rm -rf /root/*.csv && rm -rf /root/TESTS/METRICS_TABLE.md" | indent
-  docker exec -d "$c" bash -c " {
-    /root/SHELL_SCRIPTS/__buildOR.sh &&
-    /root/SHELL_SCRIPTS/__copyORbinary.sh &&
-    /root/SHELL_SCRIPTS/_RUN_LARGE_TESTS.sh
-  } >> /root/runlargetest.out 2>&1"
-  # docker exec -d "$c" bash -c "
-  # {
-  #   set -e
-  #   echo \"===== GENERATE TABLE \$(date) =====\" &&
-  #   /root/SHELL_SCRIPTS/generate_csv.sh $1 nangate45 &&
-  #   /root/SHELL_SCRIPTS/generate_metrics_table.sh
-  #   echo \"===== END \$(date) =====\"
-  # } >> /root/makecsv.out 2>&1"
-
-  # docker exec -d "$c" bash -c "
-  # {
-  #   /root/SHELL_SCRIPTS/__buildOR.sh &&
-  #   /root/SHELL_SCRIPTS/__copyORbinary.sh &&
-  #   /root/SHELL_SCRIPTS/RUN_SMALL_FULL_TESTS.sh
-  # } >> /root/runsmallfulltest.out 2>&1"
-  # sleep 2
-}
-
-make_metric_table() {
-  echo "[CONTAINER] Creating Table for $c" | indent
-  docker exec -d "$c" bash -c "
-  {
-    set -e
-    rm -rf /root/metrics_all_runs.csv &&
-    /root/SHELL_SCRIPTS/__buildOR.sh &&
-    /root/SHELL_SCRIPTS/__copyORbinary.sh &&
-    /root/SHELL_SCRIPTS/RUN_FULL_LARGE.sh &&
-    echo \"===== GENERATE TABLE \$(date) =====\" &&
-    /root/SHELL_SCRIPTS/generate_csv.sh $1 &&
-    echo \"===== END \$(date) =====\"
-  } >> /root/largetest.log 2>&1" 
-    # /root/SHELL_SCRIPTS/generate_metrics_table.sh
-  # echo "[CSV      ] Creating csv in $c" | indent
-  # docker exec $c bash -c "cat /root/metrics_all_runs.csv" | indent | indent
-  # echo "[CSV      ] Copy table from $c" | indent
-  # docker cp $c:/root/metrics_all_runs.csv /home/tsjafri/TAIZUN/DOCKER_gemini_claude/CSV_FILES/$c.csv | indent
-}
-
 indent() { sed 's/^/    /'; }
 
 AGENTS_DIR="$(dirname "$0")/../AGENTS"
@@ -82,26 +37,6 @@ get_agents_file() {
     fi
 }
 
-
-switch_to_git(){
-    local iter="$1"
-    local branch="$2"
-
-    # docker exec "$c" bash -lc '
-    #     iter="$1"
-    #     cd /root/OpenROAD_New_GRT || exit 1
-    #     commit=$(git log --grep="^Iteration ${iter}$" --format="%H" -n 1)
-    #     [ -n "$commit" ] || { echo "Commit not found for Iteration ${iter}"; exit 1; }
-    #     git switch --detach "$commit"
-    # ' bash "$iter" | indent
-
-    docker exec "$c" bash -lc "cd /root/OpenROAD_New_GRT && git branch" | indent
-    # docker exec "$c" bash -lc "cd /root/OpenROAD_New_GRT && git switch \"$branch\"" | indent
-    docker exec "$c" bash -lc "cd /root/OpenROAD_New_GRT && git log -n 1" | indent
-    # docker exec "$c" bash -lc "cd /root/OpenROAD_New_GRT && git switch -c \"$branch\"" | indent
-    # docker exec "$c" bash -lc "cd /root/OpenROAD_New_GRT && git push --set-upstream origin \"$branch\"" | indent
-
-}
 containers=(
             # ASAP7
             fr___aes_asap7
@@ -171,6 +106,7 @@ for c in "${containers[@]}"; do ESE=10
   #############################################################
   # Evolution Setup
   #############################################################
+  docker pull docker push tsjafri/gr-evolve:04-30-2026
   if [ "$ESE" -eq 10 ]; then 
 
     echo "[DOCKER] On container : $c"
