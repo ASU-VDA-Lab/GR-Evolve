@@ -1,1 +1,1 @@
-nohup /root/SHELL_SCRIPTS/RUN_NEWGR.sh ${1}
+nohup /root/SHELL_SCRIPTS/_RUN_EVOLVE.sh ${1}

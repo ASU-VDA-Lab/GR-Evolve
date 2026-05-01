@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# restart_loop_iter.sh
 # Deterministic restart loop: runs CMD for iterations CURRENT+1 .. TOTAL
-# Usage: edit CMD, CURRENT_ITERATION, TOTAL_ITERATIONS, then run:
-# nohup ./restart_loop_iter.sh > wrapper.log 2>&1 &
+# Usage: edit CURRENT_ITERATION, TOTAL_ITERATIONS, then run:
 
 set -euo pipefail
 
@@ -30,12 +28,6 @@ if ! flock -n 200 ; then
 fi
 echo $$ > "${PIDFILE}"
 trap 'rm -f "${PIDFILE}" "${LOCKFILE}"; exit' EXIT INT TERM
-
-# # sanity: reject commands that end with '&'
-# if [[ "${CMD}" =~ [&]$ ]] ; then
-#   echo "ERROR: CMD ends with '&'. Remove the ampersand or change CMD so it does not background itself."
-#   exit 2
-# fi
 
 # loop deterministically from CURRENT+1 to TOTAL
 start=$((CURRENT_ITERATION + 1))

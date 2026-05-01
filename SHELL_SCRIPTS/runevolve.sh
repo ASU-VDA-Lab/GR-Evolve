@@ -104,55 +104,55 @@ switch_to_git(){
 }
 containers=(
             # ASAP7
-            # fr___aes_asap7
-            # cugr_aes_asap7
-            # spr__aes_asap7
-            # fr___ibex_asap7
-            # cugr_ibex_asap7
-            # spr__ibex_asap7
-            # fr___jpeg_asap7
-            # cugr_jpeg_asap7
-            # spr__jpeg_asap7
-            # fr___swerv_asap7
-            # cugr_swerv_asap7
-            # spr__swerv_asap7
-            # fr___dn____asap7
-            # cugr_dn____asap7
-            # spr__dn____asap7
+            fr___aes_asap7
+            cugr_aes_asap7
+            spr__aes_asap7
+            fr___ibex_asap7
+            cugr_ibex_asap7
+            spr__ibex_asap7
+            fr___jpeg_asap7
+            cugr_jpeg_asap7
+            spr__jpeg_asap7
+            fr___swerv_asap7
+            cugr_swerv_asap7
+            spr__swerv_asap7
+            fr___dn____asap7
+            cugr_dn____asap7
+            spr__dn____asap7
 
             # # Nangate45
-            # fr___aes_nan45
-            # cugr_aes_nan45
-            # spr__aes_nan45
-            # fr___ibex_nan45
-            # cugr_ibex_nan45
-            # spr__ibex_nan45
-            # fr___jpeg_nan45
-            # cugr_jpeg_nan45
-            # spr__jpeg_nan45
-            # fr___ar136_nan45
-            # cugr_ar136_nan45
-            # spr__ar136_nan45
-            # fr___bp_nan45
-            # cugr_bp_nan45
-            # spr__bp_nan45
-            # fr___swerv_nan45
-            # cugr_swerv_nan45
-            # spr__swerv_nan45
-            # fr___dn____nan45
-            # cugr_dn____nan45
-            # spr__dn____nan45
+            fr___aes_nan45
+            cugr_aes_nan45
+            spr__aes_nan45
+            fr___ibex_nan45
+            cugr_ibex_nan45
+            spr__ibex_nan45
+            fr___jpeg_nan45
+            cugr_jpeg_nan45
+            spr__jpeg_nan45
+            fr___ar136_nan45
+            cugr_ar136_nan45
+            spr__ar136_nan45
+            fr___bp_nan45
+            cugr_bp_nan45
+            spr__bp_nan45
+            fr___swerv_nan45
+            cugr_swerv_nan45
+            spr__swerv_nan45
+            fr___dn____nan45
+            cugr_dn____nan45
+            spr__dn____nan45
 
             #SKY130HD
-            # fr___aes_sky130-2
-            # cugr_aes_sky130-2
-            # spr__aes_sky130-2
-            # fr___ibex_sky130
-            # cugr_ibex_sky130
-            # spr__ibex_sky130
-            # fr___jpeg_sky130
-            # cugr_jpeg_sky130
-            # spr__jpeg_sky130
+            fr___aes_sky130-2
+            cugr_aes_sky130-2
+            spr__aes_sky130-2
+            fr___ibex_sky130
+            cugr_ibex_sky130
+            spr__ibex_sky130
+            fr___jpeg_sky130
+            cugr_jpeg_sky130
+            spr__jpeg_sky130
 
 )
 
