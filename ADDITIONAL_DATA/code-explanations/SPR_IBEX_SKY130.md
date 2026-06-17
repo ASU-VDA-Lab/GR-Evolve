@@ -1,9 +1,9 @@
-# NEWGR vs SPRoute: Key Algorithmic Changes
+## SPR_IBEX vs SPRoute: Key Algorithmic Changes
 
 
-## Change 1: Increased Rerouting Budget 
+### Change 1: Increased Rerouting Budget 
 
-### Background
+#### Background
 
 Global routing converges through an iterative rip-up and reroute loop. Each iteration
 identifies overflowing edges, rips up the nets crossing them, and reroutes those nets through
@@ -12,7 +12,7 @@ or a hard iteration ceiling is reached. On difficult, congested designs, overflo
 reduces slowly and a  handful of edges remain congested after many passes and would clear with
 a few additional iterations, but the router stops early and leaves them unresolved.
 
-### What SPRoute Does
+#### What SPRoute Does
 
 SPRoute sets the iteration ceiling at 500 when it calls the shared routing engine:
 
@@ -37,12 +37,12 @@ if (i >= mazeRound) {   // mazeRound == 500
 }
 ```
 
-### What NEWGR Does
+#### What SPR_IBEX Does
 
-NEWGR raises the ceiling by 30%, to 650 iterations:
+SPR_IBEX raises the ceiling by 30%, to 650 iterations:
 
 ```cpp
-// NEWGR — NewgrEngine.cpp:101
+// SPR_IBEX — SPR_IBEXEngine.cpp:101
 runFastRoute(generator,
              /*benchFile=*/"",
              /*OutFileName=*/"",
@@ -56,13 +56,13 @@ The same loop termination check now permits 150 additional passes before giving 
 
 ```cpp
 // vendor/mysproute/include/fastroute.h:1326
-if (i >= mazeRound) {   // mazeRound == 650 when called from NEWGR
+if (i >= mazeRound) {   // mazeRound == 650 when called from SPR_IBEX
     getOverflow2Dmaze(&maxOverflow, &tUsage);
     break;
 }
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 On benchmarks that converge early, the change has no cost — the loop exits at
 `totalOverflow == 0` regardless of the ceiling. On congested benchmarks where SPRoute
@@ -72,9 +72,9 @@ count and fewer routing guides that the detailed router must handle as DRC viola
 
 ---
 
-## Change 2: CUGR-Integrated Router Architecture
+### Change 2: CUGR-Integrated Router Architecture
 
-### What SPRoute Does
+#### What SPRoute Does
 
 The SPRoute adapter is a minimal pass-through wrapper. It holds a `SprouteEngine` and
 exposes only initialize and run. It has no knowledge of other routers and performs no
@@ -104,11 +104,11 @@ for (auto& net_route : routes_) {
 }
 ```
 
-### What NEWGR Does
+#### What SPR_IBEX Does
 
 `NewGR` constructor
-accepts a `CUGR*` pointer, giving NEWGR a direct channel to CUGR's 3D pattern routing and
-probabilistic cost model. NEWGR also owns its full post-processing pipeline internally,
+accepts a `CUGR*` pointer, giving SPR_IBEX a direct channel to CUGR's 3D pattern routing and
+probabilistic cost model. SPR_IBEX also owns its full post-processing pipeline internally,
 rather than relying on the caller:
 
 ```cpp
@@ -134,16 +134,16 @@ NetRouteMap NewGR::run(std::vector<Net*>& nets,
 }
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
-Holding a `CUGR*` inside NEWGR enables future use of CUGR's 3D pattern routing as a
+Holding a `CUGR*` inside SPR_IBEX enables future use of CUGR's 3D pattern routing as a
 high-quality initial solution before the rip-up and reroute loop begins. CUGR's
 probabilistic cost model produces initial routes with lower congestion than the
 FLUTE-based L/Z pattern routing used by SPRoute's first pass. Replacing that initial
 phase with CUGR output would reduce the number of overflowing nets that the iterative
 loop must handle, improving both solution quality and convergence speed. The current
 implementation provides the architectural plumbing for this integration. Internalizing
-post-processing also makes NEWGR self-contained, removing the caller's responsibility to
+post-processing also makes SPR_IBEX self-contained, removing the caller's responsibility to
 know the correct sequence of guide-repair steps — a source of subtle correctness bugs
 when the router is composed with other tools.
 

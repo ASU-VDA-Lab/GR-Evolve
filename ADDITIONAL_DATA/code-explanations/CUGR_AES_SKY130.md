@@ -1,16 +1,16 @@
-# NEWGR vs CUGR: Key Algorithmic Changes
+## CUGR_AES(SKY130) vs CUGR: Key Algorithmic Changes
 
 
-## Change 1: Hard-First Net Ordering
+### Change 1: Hard-First Net Ordering
 
-### Background
+#### Background
 
 In global routing, nets are routed sequentially. The first net processed gets first pick of
 routing resources on the grid. If a large, complex net is processed later after many simpler
 nets have already claimed resources and may be forced into a congested detour, increasing
 overflow for both itself and surrounding nets.
 
-### What CUGR Does
+#### What CUGR Does
 
 CUGR sorts all nets by half-perimeter wirelength (HPWL) in ascending order before routing,
 meaning small, short nets are always routed first:
@@ -21,14 +21,14 @@ meaning small, short nets are always routed first:
 return halfParameters[lhs] < halfParameters[rhs];
 ```
 
-### What NEWGR Does
+#### What CUGR_AES Does
 
-NEWGR reverses the sort order, routing the longest and highest pin-count nets first. Pin
+CUGR_AES reverses the sort order, routing the longest and highest pin-count nets first. Pin
 count is used as a tiebreaker so that complex multi-pin nets take priority over simpler
 nets of similar span:
 
 ```cpp
-// NEWGR — CUGR.cpp
+// CUGR_AES — CUGR.cpp
 // Hard (long, high-pin) nets first.
 if (halfParameters[lhs] != halfParameters[rhs]) {
     return halfParameters[lhs] > halfParameters[rhs];
@@ -36,16 +36,16 @@ if (halfParameters[lhs] != halfParameters[rhs]) {
 return pinCounts[lhs] > pinCounts[rhs];
 ```
 
-NEWGR also pre-computes pin counts explicitly to enable this secondary sort:
+CUGR_AES also pre-computes pin counts explicitly to enable this secondary sort:
 
 ```cpp
-// NEWGR — CUGR.cpp
+// CUGR_AES — CUGR.cpp
 std::vector<int> pinCounts(gr_nets_.size());
 // ...
 pinCounts[netIndex] = net->getNumPins();
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Nets large bounding boxes and many pins are the primary source of
 routing overflow. Routing them first ensures they claim tracks while the grid is still
@@ -55,15 +55,15 @@ in regions that hard nets urgently need, forcing detours and creating overflow h
 
 ---
 
-## Change 2: Long-Segment Layer Promotion
+### Change 2: Long-Segment Layer Promotion
 
-### Background
+#### Background
 
 Long wire segments routed on lower layers are a major source of congestion.
 Ideally, long wires should be pushed to higher metal layers, which have more tracks and
 lower per-unit congestion.
 
-### What CUGR Does
+#### What CUGR Does
 
 During 3D pattern routing, CUGR evaluates wire cost uniformly across all candidate layers.
 The DP simply picks whichever layer has the lowest base wire cost, with no preference for
@@ -76,22 +76,22 @@ CostT cost = path->getCosts()[layerIndex]
              + grid_graph_->getWireCost(layerIndex, *node, *path);
 ```
 
-### What NEWGR Does
+#### What CUGR_AES Does
 
-NEWGR first identifies whether a segment is "long" by comparing its length to a tunable
+CUGR_AES first identifies whether a segment is "long" by comparing its length to a tunable
 threshold. For long segments, it multiplies the wire cost on lower layers by a bias factor
 that grows with distance from the top preferred layer for that routing direction. This makes
 lower layers artificially more expensive for long wires, steering the 3D DP toward higher layers:
 
 ```cpp
-// NEWGR — PatternRoute.cpp
+// CUGR_AES — PatternRoute.cpp
 // Flag long segments based on a tunable threshold.
 const int segment_len = std::abs((*node)[direction] - (*path)[direction]);
 const bool promote_long = segment_len >= constants_.long_segment_threshold;
 ```
 
 ```cpp
-// NEWGR — PatternRoute.cpp
+// CUGR_AES — PatternRoute.cpp
 // For long segments, inflate the wire cost on lower layers proportionally
 // to how far below the top preferred layer the candidate layer is.
 CostT wire_cost = grid_graph_->getWireCost(layerIndex, *node, *path);
@@ -103,7 +103,7 @@ if (promote_long && top_layer_for_dir[direction] != -1
 CostT cost = path->getCosts()[layerIndex] + wire_cost;
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Long horizontal and vertical segments are the dominant cause of lower-layer congestion.
 By making lower layers artificially more expensive for long wires, the 3D DP naturally
@@ -113,9 +113,9 @@ closest to the pin layer and lowers overall overflow without increasing total wi
 
 ---
 
-## Change 3: Removal of Unconditional Pin Layer Extension
+### Change 3: Removal of Unconditional Pin Layer Extension
 
-### Background
+#### Background
 
 During access-point selection, the router records which metal layers each pin can be
 accessed on. This interval informs the 3D pattern routing,
@@ -123,7 +123,7 @@ which must plan via stacks to connect to the pin on those layers. Overstating th
 forces the router to model more layers as occupied than the pin actually requires, consuming
 routing resources unnecessarily near pin regions.
 
-### What CUGR Does
+#### What CUGR Does
 
 After selecting the best access point for each pin, CUGR unconditionally extends every
 pin's fixed layer interval upward by 2 additional layers. It does this for all pins
@@ -150,13 +150,13 @@ for (auto& accessPoint : selected_access_points) {
 }
 ```
 
-### What NEWGR Does
+#### What CUGR_AES Does
 
-NEWGR removes the blanket extension entirely. The fixed layer interval is set only from
+CUGR_AES removes the blanket extension entirely. The fixed layer interval is set only from
 the layer of the actually selected access point, reflecting true pin connectivity:
 
 ```cpp
-// NEWGR — GridGraph.cpp
+// CUGR_AES — GridGraph.cpp
 const GRPoint& selectedPoint = accessPoints[bestIndex];
 const AccessPoint ap{{selectedPoint.x(), selectedPoint.y()}, {}};
 auto [it, inserted] = selected_access_points.emplace(ap);
@@ -170,7 +170,7 @@ if (!fixedLayerInterval.IsValid()) {
 // (no layer extension block)
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 The +2 layer extension forces via stacks around every pin to span more layers than the
 pin physically requires. This inflates via demand and overstates resource consumption
@@ -181,9 +181,9 @@ near pins, and better use of available routing resources.
 
 ---
 
-## Change 4: Adaptive Maze Search Grid Density
+### Change 4: Adaptive Maze Search Grid Density
 
-### Background
+#### Background
 
 CUGR's multi-level maze routing first coarsens the G-cell grid into a sparser grid, runs
 A* on the coarser graph to identify a good routing corridor, then performs fine-grained
@@ -191,7 +191,7 @@ maze routing within that corridor. The coarsening step size controls the size of
 reduced graph: a large step produces a coarser, faster search, but may miss better
 routing paths. A smaller step explores more of the grid but takes longer.
 
-### What CUGR Does
+#### What CUGR Does
 
 CUGR uses a single fixed step size of 10×10 for all nets regardless of their size or
 complexity:
@@ -202,14 +202,14 @@ complexity:
 SparseGrid grid(10, 10, 0, 0);
 ```
 
-### What NEWGR Does
+#### What CUGR_AES Does
 
-NEWGR uses a finer baseline step of 8×8 and further scales the step size down based on
+CUGR_AES uses a finer baseline step of 8×8 and further scales the step size down based on
 the net's bounding-box half-perimeter (HPWL). Larger nets — which span more G-cells and
 have more potential routing corridors — receive a denser search grid:
 
 ```cpp
-// NEWGR — CUGR.cpp
+// CUGR_AES — CUGR.cpp
 // Finer baseline grid, then adapted to net size.
 SparseGrid grid(8, 8, 0, 0);
 // ...
@@ -223,12 +223,12 @@ if (hp >= 80) {
 }
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Large nets traverse more G-cells and have more potential detour paths through the grid.
 A coarse fixed step size causes the maze router to collapse too many G-cells into a
 single coarsened node, averaging out local congestion differences and missing
-less-congested corridors. By scaling the grid density to net size, NEWGR gives larger
+less-congested corridors. By scaling the grid density to net size, CUGR_AES gives larger
 and harder to route nets a more thorough search, improving the quality
 of the maze solution, while keeping the search fast for small nets
 that do not need the extra resolution.

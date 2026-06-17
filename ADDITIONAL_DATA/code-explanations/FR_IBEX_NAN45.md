@@ -1,19 +1,19 @@
-# NEWGR vs FastRoute: Key Algorithmic Changes
+## FR_IBEX vs FastRoute: Key Algorithmic Changes
 
-This document explains the four most impactful changes introduced in NEWGR relative to the
+This document explains the four most impactful changes introduced in FR_IBEX relative to the
 baseline FastRoute implementation, with code comparisons for each.
 
 ---
 
-## Change 1: Priority-Based Net Scheduling
+### Change 1: Priority-Based Net Scheduling
 
-### Background
+#### Background
 
 In global routing, nets are processed sequentially. The first net routed gets first pick of
 routing resources. If a large, complex net is processed late, the grid is already partially
 occupied and the net may be forced into a long detour — increasing congestion for everyone else.
 
-### What FastRoute Does
+#### What FastRoute Does
 
 Nets are added to `net_ids_` one by one as they are registered from the design database.
 This order is never changed before any routing phase:
@@ -37,13 +37,13 @@ spiralRouteAll();
 newrouteZAll(10);
 ```
 
-### What NEWGR Does
+#### What FR_IBEX Does
 
-NEWGR defines a sort function that ranks nets by a composite priority score, and calls it
+FR_IBEX defines a sort function that ranks nets by a composite priority score, and calls it
 before every major routing phase:
 
 ```cpp
-// NEWGR — FastRoute.cpp
+// FR_IBEX — FastRoute.cpp
 auto sort_wirelength_priority_nets = [&]() {
   std::stable_sort(net_ids_.begin(), net_ids_.end(),
     [&](int lhs_id, int rhs_id) {
@@ -64,7 +64,7 @@ auto sort_wirelength_priority_nets = [&]() {
 The sort is applied before each routing phase:
 
 ```cpp
-// NEWGR — FastRoute.cpp
+// FR_IBEX — FastRoute.cpp
 gen_brk_RSMT(true, true, true, false, noADJ);
 sort_wirelength_priority_nets();   // <-- added
 newrouteLAll(false, true);
@@ -76,7 +76,7 @@ sort_wirelength_priority_nets();   // <-- added
 newrouteZAll(10);
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Routing the most complex, long-distance, and clock nets first ensures that the important nets
 claim routing resources while the grid is still uncongested. Smaller, simpler nets are
@@ -85,15 +85,15 @@ detour, lowering overall overflow and wirelength.
 
 ---
 
-## Change 2: Always-On Maze Ordering
+### Change 2: Always-On Maze Ordering
 
-### Background
+#### Background
 
 Each maze iteration can optionally sort nets by their congestion load before routing them,
 so the most congested nets are ripped up and rerouted first. This is controlled by an
 `ordering` flag passed to `mazeRouteMSMD`.
 
-### What FastRoute Does
+#### What FastRoute Does
 
 `fastroute` toggles congestion-based ordering on only every third iteration using `!(i % 3)`:
 
@@ -119,13 +119,13 @@ if (ordering) {
 const int netID = ordering ? tree_order_cong_[nidRPC].treeIndex : net_ids_[nidRPC];
 ```
 
-### What NEWGR Does
+#### What FR_IBEX Does
 
-NEWGR passes `true` unconditionally so that congestion-ordered routing is applied on
+FR_IBEX passes `true` unconditionally so that congestion-ordered routing is applied on
 every iteration:
 
 ```cpp
-// NEWGR — FastRoute.cpp
+// FR_IBEX — FastRoute.cpp
 mazeRouteMSMD(i,
               enlarge_,
               ripup_threshold,
@@ -134,7 +134,7 @@ mazeRouteMSMD(i,
               VIA, L, cost_params, slack_th);
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 On the two out of three iterations where `fastroute` skips the sort, a lightly congested
 net may be rerouted before a heavily congested one, wasting maze search budget on easy
@@ -143,16 +143,16 @@ always addressed first, making each iteration as effective as possible at reduci
 
 ---
 
-## Change 3: Bounding Box Detour Penalty in Maze Routing
+### Change 3: Bounding Box Detour Penalty in Maze Routing
 
-### Background
+#### Background
 
 When the maze router rips up and reroutes a tree edge, it searches within a rectangular
 region expanded around the edge's two endpoints. Within this region, any path from source
 to sink is considered valid. Without any guidance, the router may take a long detour around
 congestion even when that detour adds unnecessary wirelength.
 
-### What FastRoute Does
+#### What FastRoute Does
 
 `fastroute` computes a fixed search window and applies no penalty for moving outside
 the edge's bounding box:
@@ -169,15 +169,15 @@ const int regionY2 = std::min(ymax + enlarge_, y_grid_ - 1);
 // No penalty for moving far from [xmin..xmax, ymin..ymax] inside this window.
 ```
 
-### What NEWGR Does
+#### What FR_IBEX Does
 
-NEWGR makes two additions.
+FR_IBEX makes two additions.
 
 **First**, the search window is capped by the actual Manhattan length of the edge, so
 short edges are not given an oversized search region:
 
 ```cpp
-// NEWGR — maze.cpp
+// FR_IBEX — maze.cpp
 enlarge_ = std::min(origENG, (iter / 6 + 3) * treeedge->route.routelen);
 const int manhattan_len   = treeedge->len;
 const double expand_ratio = zero_overflow_refine ? 0.12 : 0.35;
@@ -190,11 +190,11 @@ const int regionX2 = std::min(xmax + effective_enlarge, x_grid_ - 1);
 ```
 
 **Second**, inside the `relaxAdjacent` lambda — the function that evaluates every candidate
-grid step during the maze search — NEWGR adds an explicit cost penalty for each tile the
+grid step during the maze search — FR_IBEX adds an explicit cost penalty for each tile the
 route moves outside the edge's bounding box:
 
 ```cpp
-// NEWGR — maze.cpp:  (inside relaxAdjacent lambda)
+// FR_IBEX — maze.cpp:  (inside relaxAdjacent lambda)
 // edge_bbox_{xmin,xmax,ymin,ymax} = bounding box of the two endpoints being connected
 // edge_bbox_margin = allowed slack around the box (0-2 tiles, depending on phase)
 int bbox_detour = 0;
@@ -214,7 +214,7 @@ if (bbox_detour > 0)
 The penalty strength and allowed margin adapt to the current routing phase:
 
 ```cpp
-// NEWGR — maze.cpp:
+// FR_IBEX — maze.cpp:
 const bool zero_overflow_mode    = total_overflow_ == 0;
 const bool wirelength_focus_mode = zero_overflow_mode || iter > overflow_iterations_ / 2;
 
@@ -224,7 +224,7 @@ edge_bbox_margin = zero_overflow_mode ? 0 : (wirelength_focus_mode ? 1 : 2);
 detour_unit_cost = zero_overflow_mode ? 1.55 : (wirelength_focus_mode ? 0.80 : 0.10);
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Without this penalty, the maze router takes detours freely whenever congestion makes the
 direct path slightly more expensive, accumulating unnecessary wirelength across many nets.
@@ -236,16 +236,16 @@ recovering wirelength accumulated during congestion resolution.
 
 ---
 
-## Change 4: Adaptive Via Costs in Layer Assignment
+### Change 4: Adaptive Via Costs in Layer Assignment
 
-### Background
+#### Background
 
 Layer assignment maps each 2D route segment onto a specific metal layer using dynamic
 programming (DP). At every layer transition (via), the DP adds a via cost. The quality of
 the assignment — how many vias are used and whether they land on congested layers —
 depends entirely on how this cost is set.
 
-### What FastRoute Does
+#### What FastRoute Does
 
 `fastroute` uses a fixed formula: via cost is proportional only to the number of layers
 crossed, plus a resistance term:
@@ -262,15 +262,15 @@ if (gridD[i][k] > gridD[l][k] + total_via_cost) {
 }
 ```
 
-### What NEWGR Does
+#### What FR_IBEX Does
 
-NEWGR adds two new cost components before computing `total_via_cost`.
+FR_IBEX adds two new cost components before computing `total_via_cost`.
 
 **Component 1 — Phase-dependent scaling**: via penalties grow as routing converges, so
 the DP is flexible early but discourages unnecessary vias near the end:
 
 ```cpp
-// NEWGR — utility.cpp:
+// FR_IBEX — utility.cpp:
 // iter_ratio = how far through the full routing flow we are (0.0 -> 1.0)
 const double iter_ratio = (double)layer_assign_iter_snapshot_
                         / layer_assign_total_iters_snapshot_;
@@ -292,7 +292,7 @@ already overloaded, using an S-curve (logistic function) that activates sharply 
 a layer is genuinely congested:
 
 ```cpp
-// NEWGR — utility.cpp:
+// FR_IBEX — utility.cpp:
 // Sample actual edge usage/capacity ratio at the via location
 auto localLayerCongestion = [&](int layer, int grid_idx) -> double {
   accum += sampleEdgeRatio(h_edges_3D_[layer][gy][gx]);
@@ -318,7 +318,7 @@ auto congestionPenalty = [&](int from_layer, int to_layer,
 The DP via cost is then composed from all three parts:
 
 ```cpp
-// NEWGR — utility.cpp:
+// FR_IBEX — utility.cpp:
 const int base_via_cost     = layer_delta * (k == 0 ? 2 : 3);
 const double phase_scale    = iterationPenaltyScale(layer_delta);
 const int adaptive_via_cost = round(base_via_cost * phase_scale);
@@ -337,13 +337,13 @@ if (gridD[i][k] > gridD[l][k] + total_via_cost) {
 // fastroute:
 int total_via_cost = base_via_cost + via_resistance_cost;
 
-// NEWGR:
+// FR_IBEX:
 int total_via_cost = adaptive_via_cost   // grows with routing progress
                    + via_resistance_cost  // unchanged
                    + congestion_penalty;  // penalises already-full layers
 ```
 
-### Why This Produces Better Results
+#### Why This Produces Better Results
 
 Early in routing, the DP needs freedom to explore different layer combinations, so the via
 cost stays low. As routing converges, the rising `iterationPenaltyScale` discourages
