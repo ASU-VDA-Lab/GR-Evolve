@@ -12,7 +12,7 @@ These pareto front images show Detailed Routing Wirelength vs. Global routing ru
 
 <img src="./ASAP7.png" width="60%">
 
-[ASAP7.pdf](./ASAP7.pdf) (original PDF)
+<!-- [ASAP7.pdf](./ASAP7.pdf) (original PDF) -->
 
 ## Evolution pareto fronts for NAN45 PDK
 
