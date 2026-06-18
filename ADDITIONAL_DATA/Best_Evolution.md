@@ -55,10 +55,6 @@
 | First 5   | CUGR_SWERV(NAN45)    | 2,799,700   | 2,556,680 | 8.68%       |
 | First 10  | CUGR_SWERV(NAN45)    | 2,799,700   | 2,555,130 | 8.74%       |
 | First 25  | CUGR_SWERV(NAN45)    | 2,799,700   | 2,548,142 | 8.99%       |
-| First 50  | N/A — no file has 50+ rows for SWERV |  |
-| First 75  | N/A — no file has 75+ rows for SWERV |  |
-| First 100 | N/A — no file has 100+ rows for SWERV |  |
-
 ### DYNAMIC_NODE
 
 | Stage     | Router            | Baseline WL | Best WL | Improvement |
