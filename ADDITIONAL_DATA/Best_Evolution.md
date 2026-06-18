@@ -1,6 +1,17 @@
 ## Best % Improvement in Wirelength at Each Evolution Checkpoint
 
+We show % improrvements for the first N evolutions.  
+We show data for: 
+1. [Overall Best](#overall-best-all-designs--all-routers--all-pdks) - This shows best evolution data regardless of design, router or PDK. 
+2. [Per Design](#per-design) - This section shows best performance achieved in the first N evolutions for every design. 
+3. [Per Router](#per-router) - This section shows best performance achieved in the first N evolutions for every base global router. 
+3. [Per PDK](#per-pdk) - This section shows best performance achieved in the first N evolutions for every PDK (ASAP7/NAN45/SKY130). 
+
 ## Overall Best (All Designs / All Routers / All PDKs)
+
+Here we show the best % improvement acheived for the first N evolutions regardless 
+of design or base global router. We show the evovled router that has acheived the 
+best performance in the first N evolutions. 
 
 | Stage     | Router                  | Baseline WL | Best WL   | Improvement |
 | --------- | ------------------------ | ----------- | --------- | ----------- |
@@ -14,6 +25,10 @@
 ---
 
 ## Per Design
+
+We now show the best % improvement acheived for the first N evolutions sorted per design. 
+For example, in [AES](#aes) section, we show which router has achevied the best improvement 
+in the first N evolutions. We show this data for all evolved designs.
 
 ### AES
 
@@ -83,6 +98,9 @@
 
 ## Per Router
 
+We now show the best % improvement acheived for the first N evolutions sorted per router. 
+For example, in [FastRoute](#fastroute-fr) section, we show on which design FastRoute acheived the best performance in the first N evolutions. We show this data for all three base routers.
+
 ### FastRoute (FR)
 
 | Stage     | Router            | Baseline WL | Best WL   | Improvement |
@@ -119,6 +137,10 @@
 ---
 
 ## Per PDK
+
+We now show the best % improvement acheived for the first N evolutions sorted per PDK. 
+For example, in [Nangate45](#nangate45) section, we show which design acheived the
+best performance in the first N evolutions only for the Nangate45 PDK. We show this data for all PDKs on which we have evolved the base routers.
 
 ### Nangate45
 
